@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SME VRUF SYSTEM</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e60000;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: #e60000;
+    }
+    header img {
+      height: 50px;
+      margin-right: 15px;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin: 0;
+    }
+    .form-container {
+      background-color: white;
+      color: black;
+      padding: 30px;
+      margin: 30px auto;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #e60000;
+      color: white;
+      padding: 12px 24px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .result-box {
+      background-color: #eee;
+      color: black;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    footer {
+      background-color: #e60000;
+      color: white;
+      padding: 15px;
+      position: relative;
+      bottom: 0;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="vodafone-logo.png" alt="Vodafone Logo">
+    <h1>SME VRUF<br>SYSTEM Unico & Integrator</h1>
+  </header>
+
+  <div class="form-container">
+    <label for="locationType">Dove?</label>
+    <select id="locationType">
+      <option value="COMUNE">Comune</option>
+      <option value="PROVINCIA">Provincia</option>
+      <option value="REGIONE">Regione</option>
+    </select>
+
+    <input type="text" id="locationInput" placeholder="INSERISCI IL NOME" />
+
+    <label for="serviceType">Cosa devi aprire?</label>
+    <select id="serviceType">
+      <option value="WO">WO</option>
+      <option value="Vox-VIK">Vox-VIK</option>
+      <option value="Adeguamento LAN">Adeguamento LAN</option>
+      <option value="Telefono">Telefono</option>
+    </select>
+
+    <div id="priorityContainer" style="display:none;">
+      <label for="priorityType">Priorità</label>
+      <select id="priorityType">
+        <option value="Normale NBD">Normale NBD</option>
+        <option value="Prioritario">Prioritario</option>
+        <option value="Concordato">Concordato</option>
+        <option value="Reperibile">Reperibile</option>
+      </select>
+    </div>
+
+    <button onclick="lookupSystem()">Trova System</button>
+
+    <div id="result" class="result-box" style="display:none;"></div>
+  </div>
+
+  <footer>
+    Powered by Ali Mostafa Abdeldayem<br>
+    Version 23.7.25
+  </footer>
+
+  <script>
+    let jsonData = {};
+    fetch('final_data.json')
+      .then(response => response.json())
+      .then(data => {
+        jsonData = data;
+      });
+
+    document.getElementById('serviceType').addEventListener('change', function() {
+      const priorityDiv = document.getElementById('priorityContainer');
+      if (this.value === 'Vox-VIK' || this.value === 'Adeguamento LAN') {
+        priorityDiv.style.display = 'block';
+      } else {
+        priorityDiv.style.display = 'none';
+      }
+    });
+
+    function lookupSystem() {
+      const locationType = document.getElementById('locationType').value;
+      const locationInput = document.getElementById('locationInput').value.trim().toUpperCase();
+      const serviceType = document.getElementById('serviceType').value;
+      const priorityType = document.getElementById('priorityType').value;
+
+      const dataset = jsonData[locationType];
+      const found = dataset.find(entry => entry[locationType]?.toUpperCase() === locationInput);
+
+      let resultText = '';
+
+      if (!found) {
+        resultText = `Nessun risultato trovato per ${locationType}: ${locationInput}`;
+      } else {
+        if (serviceType === 'WO') {
+          resultText = found['WO'] || 'Nessun valore WO';
+        } else if (serviceType === 'Telefono') {
+          resultText = `${found['Telefono.1'] || ''} ${found['Zona.2'] || ''}`.trim();
+        } else {
+          const key = `${serviceType} (${priorityType})`;
+          resultText = found[key] || 'Nessun valore per questa priorità';
+        }
+      }
+
+      const resultBox = document.getElementById('result');
+      resultBox.innerText = resultText;
+      resultBox.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
