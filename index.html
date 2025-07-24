@@ -16,7 +16,7 @@
     header {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       padding: 20px;
       background-color: #e60000;
     }
@@ -25,10 +25,17 @@
       margin-right: 15px;
     }
     .header-text {
-      text-align: left;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
     }
     .header-text h1 {
       font-size: 1.8em;
+      margin: 0 0 5px 0;
+    }
+    .header-text h2 {
+      font-size: 1.2em;
       margin: 0;
     }
     .form-container {
@@ -63,7 +70,7 @@
       margin-top: 20px;
       padding: 20px;
       border-radius: 8px;
-      display: block;
+      display: none;
     }
     footer {
       background-color: #e60000;
@@ -114,7 +121,7 @@
 
     <button onclick="lookupSystem()">Trova System</button>
 
-    <div id="result" class="result-box" style="display:none;"></div>
+    <div id="result" class="result-box"></div>
   </div>
 
   <footer>
