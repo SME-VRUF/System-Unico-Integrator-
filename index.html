@@ -161,7 +161,12 @@
         return;
       }
 
-      const entry = table.find(row => row[locationType]?.toUpperCase() === locationName);
+      const entry = table.find(row => {
+        const keys = Object.keys(row);
+        const matchKey = keys.find(k => k.toUpperCase() === locationType.toUpperCase());
+        return matchKey && row[matchKey]?.toUpperCase() === locationName;
+      });
+
       if (!entry) {
         resultDiv.innerText = `Nessun risultato trovato per ${locationType}: ${locationName}`;
         resultDiv.style.display = "block";
@@ -172,8 +177,8 @@
       if (service === 'WO') {
         result = entry['WO'] || 'Nessun dato';
       } else if (service === 'Telefono') {
-        const tel = entry['Telefono'] || '';
-        const zone = entry['Zona'] || '';
+        const tel = entry['Telefono'] || entry['Telefono.1'] || '';
+        const zone = entry['Zona'] || entry['Zona.2'] || '';
         result = (tel + ' ' + zone).trim();
       } else {
         const key = `${service} (${priority})`;
