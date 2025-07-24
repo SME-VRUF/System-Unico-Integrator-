@@ -132,6 +132,7 @@
       .then(response => response.json())
       .then(data => {
         jsonData = data;
+        console.log('JSON loaded!', Object.keys(jsonData));
       })
       .catch(err => {
         console.error('Errore caricamento JSON:', err);
@@ -155,16 +156,28 @@
       const resultDiv = document.getElementById('result');
 
       const table = jsonData[locationType];
-      if (!table) {
-        resultDiv.innerText = "Nessun risultato trovato.";
+      if (!table || !Array.isArray(table)) {
+        resultDiv.innerText = "Nessun risultato trovato (tabella non disponibile).";
         resultDiv.style.display = "block";
         return;
       }
 
+      // Show debug info (see console in browser)
+      console.log('Sheet selected:', locationType);
+      console.log('Searching for:', locationName);
+      console.log('Available columns in first row:', table[0] ? Object.keys(table[0]) : []);
+      // Find key matching locationType (ignore case and trim)
       const entry = table.find(row => {
         const keys = Object.keys(row);
-        const matchKey = keys.find(k => k.toUpperCase() === locationType.toUpperCase());
-        return matchKey && row[matchKey]?.toUpperCase() === locationName;
+        const matchKey = keys.find(
+          k => k && k.trim().toUpperCase() === locationType.toUpperCase()
+        );
+        const matchValue = matchKey ? row[matchKey] : null;
+        return (
+          matchKey &&
+          typeof matchValue === 'string' &&
+          matchValue.trim().toUpperCase() === locationName
+        );
       });
 
       if (!entry) {
@@ -177,12 +190,16 @@
       if (service === 'WO') {
         result = entry['WO'] || 'Nessun dato';
       } else if (service === 'Telefono') {
+        // Accept both Telefono / Telefono.1 and Zona / Zona.2
         const tel = entry['Telefono'] || entry['Telefono.1'] || '';
         const zone = entry['Zona'] || entry['Zona.2'] || '';
         result = (tel + ' ' + zone).trim();
       } else {
         const key = `${service} (${priority})`;
-        result = entry[key] || 'Nessun dato';
+        // Try with or without spaces and check all keys for robustness
+        const entryKeys = Object.keys(entry);
+        let realKey = entryKeys.find(k => k.trim().toUpperCase() === key.trim().toUpperCase());
+        result = realKey ? entry[realKey] : 'Nessun dato';
       }
 
       resultDiv.innerText = `Risultato: ${result}`;
