@@ -9,7 +9,6 @@
       font-family: Arial, sans-serif;
       background-color: #e60000;
       color: white;
-      text-align: center;
       margin: 0;
       padding: 0;
     }
@@ -18,25 +17,21 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      background-color: #e60000;
     }
     header img {
       height: 50px;
       margin-right: 15px;
     }
     .header-text {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
+      text-align: left;
     }
     .header-text h1 {
-      font-size: 1.8em;
       margin: 0 0 5px 0;
+      font-size: 1.8em;
     }
     .header-text h2 {
-      font-size: 1.2em;
       margin: 0;
+      font-size: 1.2em;
     }
     .form-container {
       background-color: white;
@@ -46,6 +41,7 @@
       border-radius: 10px;
       width: 90%;
       max-width: 600px;
+      box-sizing: border-box;
     }
     select, input[type="text"] {
       width: 100%;
@@ -77,8 +73,7 @@
       background-color: #e60000;
       color: white;
       padding: 15px;
-      position: relative;
-      bottom: 0;
+      text-align: center;
       margin-top: 40px;
     }
   </style>
@@ -132,48 +127,61 @@
 
   <script>
     let jsonData = {};
+
     fetch('final_data.json')
       .then(response => response.json())
       .then(data => {
         jsonData = data;
+      })
+      .catch(err => {
+        console.error('Errore caricamento JSON:', err);
       });
 
-    document.getElementById('serviceType').addEventListener('change', function() {
-      const priorityDiv = document.getElementById('priorityContainer');
-      if (this.value === 'Vox-VIK' || this.value === 'Adeguamento LAN') {
-        priorityDiv.style.display = 'block';
+    document.getElementById('serviceType').addEventListener('change', function () {
+      const service = this.value;
+      const priorityContainer = document.getElementById('priorityContainer');
+      if (service === 'Vox-VIK' || service === 'Adeguamento LAN') {
+        priorityContainer.style.display = 'block';
       } else {
-        priorityDiv.style.display = 'none';
+        priorityContainer.style.display = 'none';
       }
     });
 
     function lookupSystem() {
       const locationType = document.getElementById('locationType').value;
-      const locationInput = document.getElementById('locationInput').value.trim().toUpperCase();
-      const serviceType = document.getElementById('serviceType').value;
-      const priorityType = document.getElementById('priorityType').value;
+      const locationName = document.getElementById('locationInput').value.trim().toUpperCase();
+      const service = document.getElementById('serviceType').value;
+      const priority = document.getElementById('priorityType')?.value;
+      const resultDiv = document.getElementById('result');
 
-      const dataset = jsonData[locationType];
-      const found = dataset.find(entry => entry[locationType]?.toUpperCase() === locationInput);
-
-      let resultText = '';
-
-      if (!found) {
-        resultText = `Nessun risultato trovato per ${locationType}: ${locationInput}`;
-      } else {
-        if (serviceType === 'WO') {
-          resultText = found['WO'] || 'Nessun valore WO';
-        } else if (serviceType === 'Telefono') {
-          resultText = `${found['Telefono.1'] || ''} ${found['Zona.2'] || ''}`.trim();
-        } else {
-          const key = `${serviceType} (${priorityType})`;
-          resultText = found[key] || 'Nessun valore per questa priorità';
-        }
+      const table = jsonData[locationType];
+      if (!table) {
+        resultDiv.innerText = "Nessun risultato trovato.";
+        resultDiv.style.display = "block";
+        return;
       }
 
-      const resultBox = document.getElementById('result');
-      resultBox.innerText = resultText;
-      resultBox.style.display = 'block';
+      const entry = table.find(row => row[locationType]?.toUpperCase() === locationName);
+      if (!entry) {
+        resultDiv.innerText = `Nessun risultato trovato per ${locationType}: ${locationName}`;
+        resultDiv.style.display = "block";
+        return;
+      }
+
+      let result = '';
+      if (service === 'WO') {
+        result = entry['WO'] || 'Nessun dato';
+      } else if (service === 'Telefono') {
+        const tel = entry['Telefono'] || '';
+        const zone = entry['Zona'] || '';
+        result = (tel + ' ' + zone).trim();
+      } else {
+        const key = `${service} (${priority})`;
+        result = entry[key] || 'Nessun dato';
+      }
+
+      resultDiv.innerText = `Risultato: ${result}`;
+      resultDiv.style.display = "block";
     }
   </script>
 </body>
